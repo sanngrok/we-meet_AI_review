@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     kakao_rest_api_key: str = ""
     kakao_redirect_uri: str = ""
 
+    # --- 네이버 지역 검색 (온보딩 매장 검색 자동완성) ---
+    naver_client_id: str = ""
+    naver_client_secret: str = ""
+
     # --- 웹푸시 VAPID (P3에서 사용) ---
     vapid_public_key: str = ""
     vapid_private_key: str = ""

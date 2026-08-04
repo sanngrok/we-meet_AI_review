@@ -1,6 +1,7 @@
 "use client";
 
 import { Flame } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { AspectBars } from "@/components/dashboard/AspectBars";
 import { ScoreCard } from "@/components/dashboard/ScoreCard";
@@ -83,7 +84,10 @@ export default function DashboardPage() {
       {!storeLoading && !storeError && !store && !isLoading && (
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            등록된 매장이 없습니다. 온보딩에서 매장을 먼저 등록해 주세요.
+            등록된 매장이 없습니다.{" "}
+            <Link href="/onboarding" className="text-primary underline">
+              온보딩에서 매장을 먼저 등록해 주세요.
+            </Link>
           </CardContent>
         </Card>
       )}

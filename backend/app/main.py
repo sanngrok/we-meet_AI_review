@@ -13,6 +13,7 @@ from app.routers import (
     compare,
     dashboard,
     internal,
+    naver,
     replies,
     reports,
     reviews,
@@ -39,6 +40,7 @@ app.include_router(reports.router, prefix="/api/v1")
 app.include_router(compare.router, prefix="/api/v1")
 app.include_router(assistant.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(naver.router, prefix="/api/v1")
 app.include_router(internal.router)  # /internal/* — prefix 없이 (관리자 키 인증)
 
 

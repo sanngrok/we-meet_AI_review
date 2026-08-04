@@ -67,6 +67,19 @@ async def get_store(store: Store = Depends(get_owned_store)) -> Store:
     return store
 
 
+@router.get("/stores/{store_id}/settings", response_model=SettingsOut)
+async def get_settings(
+    store: Store = Depends(get_owned_store),
+    db: AsyncSession = Depends(get_db),
+) -> StoreSettings:
+    settings_row = await db.get(StoreSettings, store.id)
+    if settings_row is None:  # 방어: 과거 데이터에 settings 가 없으면 생성
+        settings_row = StoreSettings(store_id=store.id)
+        db.add(settings_row)
+        await db.commit()
+    return settings_row
+
+
 @router.put("/stores/{store_id}/settings", response_model=SettingsOut)
 async def update_settings(
     payload: SettingsUpdate,
