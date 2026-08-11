@@ -32,6 +32,11 @@ def _client() -> httpx.AsyncClient:
     return httpx.AsyncClient(transport=_transport, timeout=10.0)
 
 
+def _client_secret_field() -> dict[str, str]:
+    # 콘솔에서 "클라이언트 시크릿"을 활성화한 경우에만 필요 — 없으면 보내지 않는다.
+    return {"client_secret": settings.kakao_client_secret} if settings.kakao_client_secret else {}
+
+
 async def _refresh(db, token: KakaoToken) -> bool:
     """refresh_token 으로 access_token 갱신 후 저장. 성공 여부."""
     async with _client() as c:
@@ -41,6 +46,7 @@ async def _refresh(db, token: KakaoToken) -> bool:
                 "grant_type": "refresh_token",
                 "client_id": settings.kakao_rest_api_key,
                 "refresh_token": token.refresh_token,
+                **_client_secret_field(),
             },
         )
     if resp.status_code != 200:
@@ -102,10 +108,11 @@ async def exchange_code(db, user_id, code: str) -> bool:
                 "client_id": settings.kakao_rest_api_key,
                 "redirect_uri": settings.kakao_redirect_uri,
                 "code": code,
+                **_client_secret_field(),
             },
         )
     if resp.status_code != 200:
-        logger.warning("카카오 코드 교환 실패: %s", resp.status_code)
+        logger.warning("카카오 코드 교환 실패: %s %s", resp.status_code, resp.text)
         return False
     data = resp.json()
     expires_at = _now() + timedelta(seconds=data.get("expires_in", _DEFAULT_EXPIRES))

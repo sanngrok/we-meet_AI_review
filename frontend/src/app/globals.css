@@ -20,6 +20,8 @@
   --accent-foreground: #1c5cab;
   --destructive: #d03b3b;
   --destructive-foreground: #ffffff;
+  --warn: #a8710a; /* 리포트 진단 카드: warn 레벨 */
+  --warn-foreground: #ffffff;
   --ring: #2a78d6;
 
   /* 차트 전용 */
@@ -47,6 +49,8 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-warn: var(--warn);
+  --color-warn-foreground: var(--warn-foreground);
   --color-ring: var(--ring);
   --color-chart-pos: var(--chart-pos);
   --color-chart-neg: var(--chart-neg);

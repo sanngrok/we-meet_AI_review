@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     # --- 카카오 (P3에서 사용) ---
     kakao_rest_api_key: str = ""
     kakao_redirect_uri: str = ""
+    kakao_client_secret: str = ""  # 카카오 콘솔에서 "클라이언트 시크릿"을 활성화한 경우 필수
 
     # --- 네이버 지역 검색 (온보딩 매장 검색 자동완성) ---
     naver_client_id: str = ""
