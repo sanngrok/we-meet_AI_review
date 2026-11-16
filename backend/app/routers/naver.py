@@ -4,8 +4,9 @@ Client Secret 을 프론트에 노출하지 않기 위해 백엔드에서 대신
 (BACKEND.md, CLAUDE.md 규칙 10 — 시크릿은 .env로만)
 """
 
-from fastapi import APIRouter, Depends, Query
 from uuid import UUID
+
+from fastapi import APIRouter, Depends, Query
 
 from app.deps import get_current_user
 from app.schemas.naver import NaverPlaceResult

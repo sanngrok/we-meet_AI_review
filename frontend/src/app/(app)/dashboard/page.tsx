@@ -1,9 +1,9 @@
 "use client";
 
 import { Flame } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
 import { AspectBars } from "@/components/dashboard/AspectBars";
+import { RatingDist } from "@/components/dashboard/RatingDist";
 import { ScoreCard } from "@/components/dashboard/ScoreCard";
 import { StatTiles } from "@/components/dashboard/StatTiles";
 import { TrendChart } from "@/components/dashboard/TrendChart";
@@ -45,11 +45,29 @@ export default function DashboardPage() {
 
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold">대시보드</h1>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-xs text-subtle-foreground">
+            {new Date().toLocaleDateString("ko-KR", {
+              month: "long",
+              day: "numeric",
+              weekday: "long",
+            })}
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {store ? `안녕하세요, ${store.name} 사장님` : "대시보드"}
+          </h1>
           <p className="text-sm text-muted-foreground">
-            {store ? `${store.name}의 최근 ${range.replace("w", "주")} 평판 요약` : "매장 평판 요약"}
+            {data
+              ? `최근 ${range.replace("w", "주")}간 리뷰 ${data.total_reviews.toLocaleString(
+                  "ko-KR",
+                )}건이 쌓였어요.` +
+                (data.score_delta != null
+                  ? data.score_delta >= 0
+                    ? ` 평판 점수는 ${data.score_delta.toFixed(1)}점 올랐습니다.`
+                    : ` 평판 점수가 ${Math.abs(data.score_delta).toFixed(1)}점 내려갔어요.`
+                  : "")
+              : "오늘의 매장 평판을 요약해 드릴게요."}
           </p>
         </div>
         <div className="flex rounded-lg border border-border bg-card p-0.5">
@@ -84,22 +102,28 @@ export default function DashboardPage() {
       {!storeLoading && !storeError && !store && !isLoading && (
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            등록된 매장이 없습니다.{" "}
-            <Link href="/onboarding" className="text-primary underline">
-              온보딩에서 매장을 먼저 등록해 주세요.
-            </Link>
+            등록된 매장이 없습니다. 온보딩에서 매장을 먼저 등록해 주세요.
           </CardContent>
         </Card>
       )}
 
       {data && (
         <div className="space-y-4">
-          <FadeIn>
-            <ScoreCard score={data.score} delta={data.score_delta} />
-          </FadeIn>
-          <FadeIn delay={0.05}>
-            <StatTiles data={data} />
-          </FadeIn>
+          <div className="grid gap-4 lg:grid-cols-3">
+            <FadeIn className="lg:col-span-2">
+              <div className="flex h-full flex-col gap-4">
+                <ScoreCard score={data.score} delta={data.score_delta} />
+                <StatTiles data={data} />
+              </div>
+            </FadeIn>
+            <FadeIn delay={0.05}>
+              <RatingDist
+                dist={data.rating_dist}
+                avgRating={data.avg_rating}
+                totalReviews={data.total_reviews}
+              />
+            </FadeIn>
+          </div>
           <div className="grid gap-4 lg:grid-cols-2">
             <FadeIn delay={0.1}>
               <TrendChart trend={data.trend} />

@@ -77,6 +77,7 @@ async def get_settings(
         settings_row = StoreSettings(store_id=store.id)
         db.add(settings_row)
         await db.commit()
+        await db.refresh(settings_row)
     return settings_row
 
 

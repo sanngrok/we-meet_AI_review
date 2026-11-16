@@ -28,13 +28,30 @@ const NAV = [
 
 function StoreSelect() {
   const { stores, store, setStoreId } = useStore();
-  if (stores.length === 0) return null;
+  const router = useRouter();
+  if (stores.length === 0) {
+    return (
+      <Link
+        href="/onboarding"
+        className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+      >
+        <StoreIcon className="h-4 w-4" />
+        매장 등록하기
+      </Link>
+    );
+  }
   return (
     <label className="flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1.5 text-sm">
       <StoreIcon className="h-4 w-4 text-muted-foreground" />
       <select
         value={store?.id ?? ""}
-        onChange={(e) => setStoreId(Number(e.target.value))}
+        onChange={(e) => {
+          if (e.target.value === "__add__") {
+            router.push("/onboarding");
+            return;
+          }
+          setStoreId(Number(e.target.value));
+        }}
         className="max-w-40 bg-transparent outline-none"
       >
         {stores.map((s) => (
@@ -42,6 +59,7 @@ function StoreSelect() {
             {s.name}
           </option>
         ))}
+        <option value="__add__">＋ 매장 추가</option>
       </select>
     </label>
   );
@@ -60,19 +78,22 @@ function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen md:flex">
-      {/* 데스크톱 사이드바 */}
+      {/* 데스크톱 사이드바 — 밝은 배경 + 바이올렛 활성 (레퍼런스: cascal) */}
       <aside className="fixed inset-y-0 left-0 z-20 hidden w-60 flex-col border-r border-border bg-card md:flex">
-        <div className="flex items-center gap-2 px-5 py-5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Sparkles className="h-4 w-4" />
+        <div className="flex items-center gap-2.5 px-5 py-6">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <Sparkles className="h-4.5 w-4.5" />
           </span>
           <div className="leading-tight">
             <p className="text-sm font-bold">리뷰 진단 AI</p>
-            <p className="text-[11px] text-muted-foreground">Naver Place Insights</p>
+            <p className="text-[11px] text-subtle-foreground">Naver Place Insights</p>
           </div>
         </div>
 
-        <nav className="flex-1 space-y-1 px-3">
+        <p className="px-6 pb-2 text-[10px] font-semibold tracking-widest text-subtle-foreground">
+          MAIN MENU
+        </p>
+        <nav className="flex-1 space-y-0.5 px-3">
           {NAV.map(({ href, label, icon: Icon }) => {
             const active = pathname.startsWith(href);
             return (
@@ -80,13 +101,13 @@ function Shell({ children }: { children: React.ReactNode }) {
                 key={href}
                 href={href}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
                   active
                     ? "bg-accent font-semibold text-accent-foreground"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className={cn("h-4 w-4", active && "text-primary")} />
                 {label}
               </Link>
             );
@@ -95,7 +116,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 
         <button
           onClick={logout}
-          className="mx-3 mb-4 flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="mx-3 mb-5 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           <LogOut className="h-4 w-4" />
           로그아웃
@@ -104,7 +125,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-h-screen flex-1 flex-col md:pl-60">
         {/* 상단 헤더 */}
-        <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border bg-background/80 px-4 py-3 backdrop-blur md:px-8">
+        <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border bg-card/90 px-4 py-3 backdrop-blur md:px-8">
           <span className="font-bold md:hidden">리뷰 진단 AI</span>
           <div className="ml-auto flex items-center gap-2">
             <StoreSelect />

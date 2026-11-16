@@ -56,6 +56,16 @@ async def test_store_crud_and_settings_row(client, db):
     assert res.json()["default_tone"] == "friendly"
     assert res.json()["tone_examples"] == ["감사합니다 고객님!"]
 
+    # settings 조회 (설정 화면 초기 로딩) — 갱신 값 반영 + 타 사용자 404
+    res = await client.get(f"/api/v1/stores/{store_id}/settings", headers=h)
+    assert res.status_code == 200
+    assert res.json()["default_tone"] == "friendly"
+    assert res.json()["notify_urgent"] is True
+    res = await client.get(
+        f"/api/v1/stores/{store_id}/settings", headers=auth_headers(uuid4())
+    )
+    assert res.status_code == 404
+
 
 async def test_naver_channel_triggers_crawl_job(client, db):
     user = uuid4()

@@ -5,35 +5,34 @@ import { api } from "@/lib/api";
 import type { components } from "@/lib/api-types";
 
 export type ReviewItem = components["schemas"]["ReviewItem"];
-export type Sentiment = "pos" | "neu" | "neg";
+export type ReviewsPage = components["schemas"]["ReviewsPage"];
 
-export type ReviewFilters = {
-  sentiment?: Sentiment;
-  urgent?: boolean;
-  answered?: boolean;
-};
+/** 인박스 필터 칩 — URL ?filter= 값과 1:1 (FRONTEND.md §4) */
+export type InboxFilter = "all" | "neg" | "urgent" | "unanswered";
 
-const PAGE_SIZE = 20;
-
-function buildQuery(filters: ReviewFilters, cursor?: number) {
-  const params = new URLSearchParams();
-  if (filters.sentiment) params.set("sentiment", filters.sentiment);
-  if (filters.urgent != null) params.set("urgent", String(filters.urgent));
-  if (filters.answered != null) params.set("answered", String(filters.answered));
-  if (cursor != null) params.set("cursor", String(cursor));
-  params.set("limit", String(PAGE_SIZE));
-  return params.toString();
+function filterQuery(filter: InboxFilter): string {
+  switch (filter) {
+    case "neg":
+      return "&sentiment=neg";
+    case "urgent":
+      return "&urgent=true";
+    case "unanswered":
+      return "&answered=false";
+    default:
+      return "";
+  }
 }
 
-export function useReviews(storeId: number | undefined, filters: ReviewFilters) {
+export function useReviews(storeId: number | undefined, filter: InboxFilter) {
   return useInfiniteQuery({
-    queryKey: ["reviews", storeId, filters],
+    queryKey: ["reviews", storeId, filter],
     queryFn: ({ pageParam }) =>
-      api<components["schemas"]["ReviewsPage"]>(
-        `/stores/${storeId}/reviews?${buildQuery(filters, pageParam)}`,
+      api<ReviewsPage>(
+        `/stores/${storeId}/reviews?limit=20${filterQuery(filter)}` +
+          (pageParam ? `&cursor=${pageParam}` : ""),
       ),
-    initialPageParam: undefined as number | undefined,
-    getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
+    initialPageParam: null as number | null,
+    getNextPageParam: (last) => last.next_cursor,
     enabled: storeId != null,
   });
 }

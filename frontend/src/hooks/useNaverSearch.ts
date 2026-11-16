@@ -14,5 +14,6 @@ export function useNaverSearch(query: string) {
     queryFn: () => api<NaverPlaceResult[]>(`/naver/search?query=${encodeURIComponent(trimmed)}`),
     enabled: trimmed.length >= 2,
     staleTime: 60_000,
+    retry: false, // 선택 기능 — 실패하면 자유 입력으로 진행
   });
 }

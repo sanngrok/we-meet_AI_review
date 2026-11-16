@@ -2,7 +2,8 @@
 
 NCP(네이버 클라우드 플랫폼) 콘솔에서 발급하는 NAVER API HUB 키를 사용한다. 예전 developers.naver.com
 Open API(X-Naver-Client-Id, openapi.naver.com)와는 엔드포인트·인증 헤더가 다르므로 혼동 금지.
-크롤링과 무관하며 리뷰 데이터는 제공하지 않는다 — 상호명/주소/카테고리 조회로 온보딩 입력을 보조하는 용도.
+크롤링과 무관하며 리뷰 데이터는 제공하지 않는다 — 상호명/주소/카테고리 조회로
+온보딩 입력을 보조하는 용도.
 NAVER_CLIENT_ID/SECRET 미설정 시 빈 리스트를 반환한다(선택 기능).
 """
 

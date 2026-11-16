@@ -1,63 +1,76 @@
+"use client";
+
 import { CheckCircle2, Star } from "lucide-react";
 import { SeverityBadge } from "@/components/review/SeverityBadge";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
 import type { ReviewItem } from "@/hooks/useReviews";
+import { cn } from "@/lib/utils";
 
-type Aspect = { category: string; polarity: "pos" | "neg" };
+function Stars({ rating }: { rating: number | null }) {
+  if (rating == null) return null;
+  return (
+    <span className="inline-flex items-center gap-0.5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <Star
+          key={i}
+          className={cn(
+            "h-3.5 w-3.5",
+            i < rating ? "fill-amber-400 text-amber-400" : "text-border",
+          )}
+        />
+      ))}
+    </span>
+  );
+}
 
 export function ReviewCard({ review, onClick }: { review: ReviewItem; onClick: () => void }) {
-  const aspects = review.aspects as Aspect[];
-
   return (
     <Card
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      className="cursor-pointer space-y-2.5 p-4 transition-colors hover:bg-muted/40"
+      onKeyDown={(e) => e.key === "Enter" && onClick()}
+      className="cursor-pointer transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-sm">
-          <span className="font-medium">{review.author_masked ?? "익명"}</span>
-          {review.rating != null && (
-            <span className="flex items-center gap-0.5 text-muted-foreground">
-              <Star className="h-3.5 w-3.5 fill-current" />
-              {review.rating}
-            </span>
-          )}
-          {review.written_at && (
-            <span className="text-xs text-muted-foreground">{review.written_at}</span>
-          )}
+      <CardContent className="space-y-2 p-4">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="font-semibold">{review.author_masked ?? "익명"}</span>
+          <Stars rating={review.rating} />
+          <span className="text-xs text-subtle-foreground">{review.written_at ?? ""}</span>
+          <span className="ml-auto flex items-center gap-1.5">
+            <SeverityBadge severity={review.severity} urgent={review.urgent} />
+            {review.answered && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">
+                <CheckCircle2 className="h-3 w-3" />
+                답변됨
+              </span>
+            )}
+          </span>
         </div>
-        <div className="flex items-center gap-1.5">
-          {review.answered && (
-            <Badge variant="accent">
-              <CheckCircle2 className="h-3 w-3" />
-              답변완료
-            </Badge>
-          )}
-          <SeverityBadge severity={review.severity} urgent={review.urgent} />
-        </div>
-      </div>
 
-      <p className="line-clamp-3 text-sm text-foreground">{review.body}</p>
+        <p className="text-sm leading-relaxed">{review.body}</p>
 
-      {aspects.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {aspects.map((a, i) => (
-            <span
-              key={i}
-              className={cn(
-                "rounded-full border px-2 py-0.5 text-xs",
-                a.polarity === "neg"
-                  ? "border-destructive/30 bg-destructive/10 text-destructive"
-                  : "border-border bg-muted text-muted-foreground",
-              )}
-            >
-              {a.category}
-            </span>
-          ))}
-        </div>
-      )}
+        {review.aspects.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {review.aspects.map((a, i) => {
+              const aspect = a as { category?: string; polarity?: string };
+              return (
+                <Badge
+                  key={i}
+                  variant="secondary"
+                  className={cn(
+                    aspect.polarity === "neg" && "bg-destructive/10 text-destructive",
+                    aspect.polarity === "pos" && "bg-accent text-accent-foreground",
+                  )}
+                >
+                  {aspect.category}
+                </Badge>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 }

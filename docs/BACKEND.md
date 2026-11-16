@@ -204,6 +204,7 @@ scheduler = AsyncIOScheduler(timezone="Asia/Seoul")
 # 3) 알림 다이제스트: 매시 정각, 미발송 일반 부정 리뷰 묶음 발송
 # 4) 주간 리포트: 월 07:00, 전 매장 report_gen 실행
 # 5) 스냅샷 청소: 일 1회, 7일 지난 HTML 삭제
+# 6) DB 백업: 일요일 05:00, pg_dump → /data/backups (T-15, Supabase 자동백업의 2차 보완)
 # 크롤 실패 시 백오프 재시도(5분→30분→2시간, 3회 후 포기)는 job 내부에서 처리
 ```
 
@@ -213,7 +214,7 @@ worker는 api와 같은 DB를 쓰지만 **FastAPI 앱을 import하지 않는다*
 
 | 파일 | 엔드포인트 | 비고 |
 |---|---|---|
-| stores.py | `POST /stores`, `GET /stores`, `GET /stores/{id}`, `PUT /stores/{id}/settings` | 생성 시 store_settings row도 생성 |
+| stores.py | `POST /stores`, `GET /stores`, `GET /stores/{id}`, `GET`·`PUT /stores/{id}/settings` | 생성 시 store_settings row도 생성. GET은 설정 화면 초기 로딩용(row 없으면 기본값으로 생성) |
 | stores.py | `POST /stores/{id}/channels` | 등록 직후 crawl_jobs insert(첫 수집 트리거) |
 | reviews.py | `GET /stores/{id}/reviews` | 필터: sentiment/urgent/answered, 커서 페이지네이션(`?cursor=<id>&limit=20`, id desc) |
 | reviews.py | `POST /stores/{id}/reviews:import` | CSV 폴백. 업로드 후 BackgroundTasks로 analyze 실행 |
@@ -225,6 +226,7 @@ worker는 api와 같은 DB를 쓰지만 **FastAPI 앱을 import하지 않는다*
 | assistant.py | `POST /stores/{id}/assistant/messages` | SSE(StreamingResponse, `text/event-stream`). 흐름은 ARCHITECTURE §4. `GET .../messages` 로 히스토리 |
 | internal.py | `POST /internal/crawl:trigger` | require_internal_key. crawl_jobs insert |
 | auth.py | `GET /auth/kakao/callback`, `POST /push/subscribe` | 카카오 토큰 저장 / 웹푸시 구독 저장 |
+| naver.py | `GET /naver/search?query=` | 온보딩 매장명 자동완성. NAVER API HUB 지역 검색 프록시(`services/naver_search.py`) — 시크릿을 프론트에 노출하지 않기 위함. 크롤링 아님, 리뷰 데이터 없음. 키 미설정/실패 시 빈 리스트 |
 
 ## 10. services/assistant_queries.py — 비서 쿼리 템플릿
 

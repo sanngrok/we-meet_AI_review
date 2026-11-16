@@ -1,77 +1,84 @@
 "use client";
 
+import { CalendarDays, FileText } from "lucide-react";
 import { DiagnosisCard } from "@/components/report/DiagnosisCard";
-import { PrescriptionChecklist } from "@/components/report/PrescriptionChecklist";
+import { PrescriptionList } from "@/components/report/PrescriptionList";
+import { FadeIn } from "@/components/motion/fade-in";
 import { useStore } from "@/components/store-provider";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useLatestReport, type Diagnosis, type Prescription } from "@/hooks/useReport";
+import { useReport, type Diagnosis, type Prescription } from "@/hooks/useReport";
 import { ApiError } from "@/lib/api";
 
-const LEVEL_ORDER = ["crit", "warn", "strength", "opportunity"] as const;
-
-function LoadingState() {
-  return (
-    <div className="space-y-4">
-      <div className="grid gap-3 sm:grid-cols-2">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-28" />
-        ))}
-      </div>
-      <Skeleton className="h-48" />
-    </div>
-  );
-}
+// 진단 정렬 우선순위 — 심각한 것부터 보이게
+const ORDER = ["crit", "warn", "opportunity", "strength"];
 
 export default function ReportsPage() {
-  const { store } = useStore();
-  const { data: report, isLoading, isError, error } = useLatestReport(store?.id);
+  const { store, isLoading: storeLoading } = useStore();
+  const { data, isLoading, error } = useReport(store?.id);
 
-  const notFound = error instanceof ApiError && error.status === 404;
+  const notGenerated = error instanceof ApiError && error.status === 404;
+  const diagnosis = ((data?.diagnosis ?? []) as Diagnosis[])
+    .slice()
+    .sort((a, b) => ORDER.indexOf(a.level) - ORDER.indexOf(b.level));
+  const prescriptions = (data?.prescriptions ?? []) as Prescription[];
 
   return (
     <section className="space-y-4">
       <div>
         <h1 className="text-xl font-bold">주간 리포트</h1>
-        <p className="text-sm text-muted-foreground">
-          {report ? `${report.week_start} 시작 주 진단` : "매장 평판 진단"}
+        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+          {data ? (
+            <>
+              <CalendarDays className="h-3.5 w-3.5" />
+              {data.week_start} 주차 · {store?.name}
+            </>
+          ) : (
+            "AI가 진단하고 처방합니다"
+          )}
         </p>
       </div>
 
-      {isLoading && <LoadingState />}
+      {(storeLoading || isLoading) && (
+        <div className="space-y-3">
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-48" />
+        </div>
+      )}
 
-      {isError && !isLoading && notFound && (
+      {notGenerated && (
         <Card>
-          <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            아직 생성된 리포트가 없습니다. 리뷰 수집·분석이 누적되면 매주 자동 생성돼요.
+          <CardContent className="flex flex-col items-center gap-2 py-14 text-center">
+            <FileText className="h-8 w-8 text-subtle-foreground" />
+            <p className="text-sm font-medium">아직 생성된 리포트가 없습니다</p>
+            <p className="text-xs text-muted-foreground">
+              리포트는 매주 월요일 자동 생성됩니다. (워커 실행 필요)
+            </p>
           </CardContent>
         </Card>
       )}
 
-      {isError && !isLoading && !notFound && (
+      {error && !notGenerated && (
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
-            리포트를 불러오지 못했습니다. 백엔드(<code>localhost:8000</code>)가 실행 중인지
-            확인해 주세요.
+            리포트를 불러오지 못했습니다. 백엔드가 실행 중인지 확인해 주세요.
           </CardContent>
         </Card>
       )}
 
-      {report && (
-        <div className="space-y-6">
-          <div className="grid gap-3 sm:grid-cols-2">
-            {(report.diagnosis as Diagnosis[])
-              .slice()
-              .sort((a, b) => LEVEL_ORDER.indexOf(a.level) - LEVEL_ORDER.indexOf(b.level))
-              .map((d, i) => (
-                <DiagnosisCard key={i} level={d.level} title={d.title} evidence={d.evidence} />
+      {data && (
+        <div className="space-y-4">
+          <FadeIn>
+            <div className="grid gap-3 md:grid-cols-2">
+              {diagnosis.map((d, i) => (
+                <DiagnosisCard key={i} item={d} index={i} />
               ))}
-          </div>
-
-          <div>
-            <h2 className="mb-2 text-sm font-semibold">처방 체크리스트</h2>
-            <PrescriptionChecklist items={report.prescriptions as Prescription[]} />
-          </div>
+            </div>
+          </FadeIn>
+          <FadeIn delay={0.1}>
+            <PrescriptionList items={prescriptions} reportId={data.id} />
+          </FadeIn>
         </div>
       )}
     </section>
