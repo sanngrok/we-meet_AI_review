@@ -46,9 +46,12 @@ jobs:
       - name: Apply migrations
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+          # psql(libpq)은 SQLAlchemy 드라이버 표기(postgresql+asyncpg://)를 URI로 인식하지 못하고
+          # DB 이름으로 취급해 로컬 소켓에 접속하려다 실패한다 → "+asyncpg"를 떼고 넘긴다.
+          PG_URL="${DATABASE_URL/+asyncpg/}"
           for f in $(ls backend/migrations/*.sql | sort); do
             echo "applying $f"
-            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f"
+            psql "$PG_URL" -v ON_ERROR_STOP=1 -f "$f"
           done
 
       - name: ruff check
